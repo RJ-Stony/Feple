@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# production
+dist/
+
+# logs
+*.log
+npm-debug.log*
+
+# local env
+.env*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# deploy
+gh-pages/
