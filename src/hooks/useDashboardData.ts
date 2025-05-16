@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import Papa from "papaparse";
-import rawData from "../data/text_features_all_training.csv?raw";
+import rawData from "../data/dashboard/text_features_all_training.csv?raw";
 
 export interface RecordType {
   session_id: string;

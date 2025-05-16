@@ -21,3 +21,11 @@ Thumbs.db
 
 # deploy
 gh-pages/
+
+# data
+.ipynb_checkpoints/
+column_extraction/
+data_v3/
+dataset_v3/
+json_merge/
+output/
