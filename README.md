@@ -99,8 +99,76 @@
 
 # 🛠️ 프로젝트 설계서
 
-## 🌊 데이터 아키텍처
-![image](https://github.com/user-attachments/assets/9cc91e19-6834-48fc-90e4-5ad99e3a0211)
+## 🌊 서비스 파이프라인
+![image](https://github.com/user-attachments/assets/ac0bae30-e7da-45b0-bf06-ef47dea6be52)
+
+### 1. 상담 오디오 → 구조화된 JSON 변환 (Callytics)
+**입력**  
+- 상담 오디오 파일  
+- 메타데이터 (`client_age`, `client_gender` 등)
+
+**처리 흐름**  
+1. 음성 → STT 변환  
+2. 화자 분리 (상담사 vs 고객)  
+3. 발화 단위별 감정·욕설·대화 길이 분석  
+
+**출력 예시**  
+```json
+{
+  "session_id": "A001",
+  "speaker": "csr",
+  "start_time": 1.23,
+  "end_time": 4.56,
+  "text": "무엇을 도와드릴까요?",
+  "sentiment": "neutral",
+  "conflict_flag": false,
+  "client_age": "30대",
+  "client_gender": "여"
+}
+```
+
+### 2. 메타데이터 병렬 생성 + 이중 평가용 Instruction 세트 구성
+**병렬 처리 모델**
+- Callytics → 정량 지표(ATT, silence_ratio, speech_ratio, VAD_duration 등)
+- Meta-LLAMA-3-8B → 주제 분류, 요약, 감정 흐름 분석
+- LightGBMClassifier → 상담 결과 자동 분류(만족, 미흡, 추가상담필요, 해결불가)
+
+**이중 평가**
+- LightGBM 예측 결과 vs LLM 설명 결과 일치 여부로 신뢰도 강화
+
+### 3. NA-LLM 기반 평가 태스크 설계 및 학습
+- 입력 구조: instruction + 정량 메타데이터 + 상담 텍스트
+- 학습 목표: 상담사의 강점, 개선점, 패턴 예측
+
+**예시 Prompt/Output**
+```markdown
+### Instruction:
+아래 상담 내용을 바탕으로 상담사의 강점과 개선점을 분석하세요.
+
+### Input:
+상담사: … ; 고객: …
+silence_ratio: 0.32, conflict_flag: true, ATT: 392s, topic: 요금제
+
+### Output:
+공감 표현이 우수하나 응답 지연으로 고객 불만이 다소 증폭되었습니다.
+```
+
+### 4. 평가 결과 → 개인 맞춤형 코칭 시스템 연동
+**코칭 다이어리**
+- NA-LLM 출력 요약 → Django 기반 일지에 기록
+  - 예: “이번 주 공감 지수 22%↑, 침묵 시간 평균보다 높아 즉각 응답 훈련 필요”
+
+**예측형 알림**
+- 상담 패턴 변화를 감지해 다음 상담 전 훈련 자료 전송
+
+### 5. 피드백 기반 조직 몰입 시스템 연계 (게이미피케이션 + 대시보드)
+**게이미피케이션**
+- 예: “공감 멘트 10회 이상 → 배지 획득”
+- 팀 단위 리워드
+
+**성과 대시보드**
+- 개별·조직 단위 KPI 시각화
+- 성장 추이 및 예측 분석
 
 ## 📚 기술 스택
 
